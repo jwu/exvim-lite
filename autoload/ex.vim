@@ -26,17 +26,17 @@ endfunction
 " msg: string
 function ex#debug(msg)
     silent echohl Special
-    echom 'Debug(exVim): ' . a:msg . ', ' . expand('<sfile>') 
+    echom 'Debug(exVim): ' . a:msg . ', ' . expand('<sfile>')
     silent echohl None
 endfunction
 
 " ex#short_message {{{1
-" short the msg 
+" short the msg
 function ex#short_message( msg )
    if len( a:msg ) <= &columns-13
        return a:msg
    endif
 
    let len = (&columns - 13 - 3) / 2
-   return a:msg[:len] . "..." . a:msg[ (-len):] 
+   return a:msg[:len] . "..." . a:msg[ (-len):]
 endfunction

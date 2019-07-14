@@ -1,7 +1,14 @@
 function! s:find_exvim_folder()
-  let result = finddir(fnamemodify('.exvim', ':p'), '.;')
-  if result != ""
-    call ex#warning(result)
+  let exvim_dir_path = finddir(fnamemodify('.exvim', ':p'), '.;')
+  if exvim_dir_path != ''
+    let file = fnamemodify(exvim_dir_path.'/config.json', ':p')
+
+    if filereadable(file)
+      call ex#conf#load(file)
+      return
+    endif
+
+    call ex#conf#new(file)
   endif
 endfunction
 
