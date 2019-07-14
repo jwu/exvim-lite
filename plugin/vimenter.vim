@@ -1,7 +1,7 @@
 function! s:find_exvim_folder()
   let result = finddir(fnamemodify('.exvim', ':p'), '.;')
   if result != ""
-    ex#warning(result)
+    call ex#warning(result)
   endif
 endfunction
 
