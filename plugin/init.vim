@@ -1,3 +1,7 @@
+let g:cwd = ''
+let g:exvim_dir = ''
+let g:exvim_ver = '1.0.1'
+
 function! s:find_exvim_folder()
   let exvim_dir_path = finddir(fnamemodify('.exvim', ':p'), '.;')
   if exvim_dir_path != ''

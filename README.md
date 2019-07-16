@@ -6,4 +6,4 @@ More details, check `:help exvim-lite`.
 
 ## Requirements
 
-- Vim 8.0 or higher.
+- Vim 8.1 or higher.
