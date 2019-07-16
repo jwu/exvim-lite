@@ -61,6 +61,23 @@ function ex#conf#load(file)
   let s:old_tags = &tags
   let &tags = fnameescape(s:old_tags.','.g:exvim_dir.'/tags')
 
-  " set wildignore
-  let &wildignore = join(conf.ignores, ',')
+  " set ignores
+  if executable('rg')
+    let ignores = []
+    for ig in conf.ignores
+      call add(ignores, '-g')
+      call add(ignores, '!' . ig)
+    endfor
+    let g:ctrlp_user_command = 'rg %s --no-ignore --hidden --files ' . join(ignores)
+  else
+    " set wildignore
+    " NOTE: we disable setting wildignore, it has so many restriction, and the
+    " syntax is very limit, only suport things like `*.png`. Not support `**/*`
+    let &wildignore = join(conf.ignores, ',')
+    let g:ctrlp_custom_ignore = {
+          \ 'dir':  '\v[\/]\.(git|hg|svn)$|target|node_modules|te?mp$|logs?$|public$|dist$',
+          \ 'file': '\v\.(exe|so|dll|ttf|png|gif|jpe?g|bpm)$|\-rplugin\~',
+          \ 'link': 'some_bad_symbolic_links',
+          \ }
+  endif
 endfunction

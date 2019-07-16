@@ -2,7 +2,7 @@ let g:cwd = ''
 let g:exvim_dir = ''
 let g:exvim_ver = '1.0.1'
 
-function! s:find_exvim_folder()
+function! s:find_exvim_folder() abort
   let exvim_dir_path = finddir(fnamemodify('.exvim', ':p'), '.;')
   if exvim_dir_path != ''
     let file = fnamemodify(exvim_dir_path.'config.json', ':p')
@@ -16,7 +16,7 @@ function! s:find_exvim_folder()
   endif
 endfunction
 
-function! s:new_exvim_project(dir)
+function! s:new_exvim_project(dir) abort
   let dir = fnamemodify(a:dir, ':p')
   if dir == ''
     ex#error("Can't find path: " . a:dir)
