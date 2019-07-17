@@ -48,11 +48,36 @@ endfunction
 " when EXVIM noargs, load {cwd}/.exvim/config.json
 " when EXVIM foo/bar, load foo/bar/.exvim/config.json
 command! -nargs=? -complete=dir EXVIM call <SID>new_exvim_project('<args>')
+
+command! EXbn call ex#buffer#navigate('bn')
+command! EXbp call ex#buffer#navigate('bp')
+command! EXbalt call ex#buffer#to_alternate_edit_buf()
+command! EXbd call ex#buffer#keep_window_bd()
+
+command! EXsw call ex#window#switch_window()
+command! EXgp call ex#window#goto_plugin_window()
+
+command! EXplugins call ex#echo_registered_plugins()
 " }}}
 
 " autocmd {{{
-augroup VIM_ENTER
+augroup EXVIM
   au!
   au VimEnter * nested call <SID>find_exvim_folder()
+  au VimEnter,WinLeave * call ex#window#record()
+  au BufLeave * call ex#buffer#record()
 augroup END
+" }}}
+
+" ex#register_plugin register plugins {{{
+" register Vim builtin window
+call ex#plugin#register('help', {'buftype': 'help'})
+call ex#plugin#register('qf', {'buftype': 'quickfix'})
+call ex#plugin#register( '__EMPTY__', { 'bufname': '-MiniBufExplorer-' } )
+call ex#plugin#register('minibufexpl', {'bufname': '-MiniBufExplorer-', 'buftype': 'nofile', 'actions': ['norecord']})
+call ex#plugin#register('taglist', {'bufname': '__Tag_List__', 'buftype': 'nofile', 'actions': ['autoclose']})
+call ex#plugin#register('tagbar', {'bufname': '__TagBar__', 'buftype': 'nofile', 'actions': ['autoclose']})
+call ex#plugin#register('nerdtree', {'bufname': 'NERD_tree_\d\+', 'buftype': 'nofile'})
+call ex#plugin#register('diff', {'bufname': 'diffpanel_\d\+', 'buftype': 'nowrite'})
+call ex#plugin#register('gitcommit', {})
 " }}}

@@ -1,0 +1,12 @@
+**/.DS_Store
+**/.git
+**/.svn
+**/.vs
+**/.vscode
+**/.exvim
+/[Ll]ibrary/
+/ProjectSettings/
+/[Ll]ogs/
+/[Bb]uild/
+/[Oo]bj/
+/[Tt]emp/
