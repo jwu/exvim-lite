@@ -10,47 +10,64 @@ function ex#conf#reset()
 endfunction
 
 " ex#conf#new {{{
-function ex#conf#new(file)
+function ex#conf#new_config(file)
   let lines = [
         \ '{',
         \ '  "version": "'.g:exvim_ver.'",',
+        \ '  "space": 2,',
+        \ '  "includes": [',
+        \ '  ],',
         \ '  "ignores": [',
+        \ '    "**/.DS_Store",',
         \ '    "**/.git",',
         \ '    "**/.svn",',
-        \ '    "**/.exvim"',
-        \ '  ],',
-        \ '  "space": 2',
+        \ '    "**/.vs",',
+        \ '    "**/.vscode",',
+        \ '    "**/.exvim",',
+        \ '    "/[Ll]ibrary/",',
+        \ '    "/ProjectSettings/",',
+        \ '    "/[Ll]ogs/",',
+        \ '    "/[Bb]uild/",',
+        \ '    "/[Oo]bj/",',
+        \ '    "/[Tt]emp/"',
+        \ '  ]',
         \ '}'
         \ ]
   call writefile(lines, a:file)
-  call ex#conf#load(a:file)
 endfunction
 
 " ex#conf#load {{{
-function ex#conf#load(file)
-  let lines = readfile(a:file)
+function ex#conf#load(dir)
+  let file = fnamemodify(a:dir.'config.json', ':p')
+
+  if !filereadable(file)
+    call ex#conf#new_config(file)
+  endif
+
+  let lines = readfile(file)
   let conf = json_decode(join(lines))
 
   if conf.version != g:exvim_ver
-    call ex#conf#new(a:file)
+    call ex#conf#new(file)
     return
   endif
 
-  let g:exvim_dir = fnamemodify(a:file, ':p:h')
-  let g:cwd = fnamemodify(a:file, ':p:h:h')
+  let g:exvim_dir = fnamemodify(a:dir, ':p')
+  let g:exvim_cwd = fnamemodify(a:dir, ':p:h:h')
 
   " set parent working directory
-  silent exec 'cd ' . fnameescape(g:cwd)
+  silent exec 'cd ' . fnameescape(g:exvim_cwd)
   let s:old_titlestring = &titlestring
-  let &titlestring = "%{g:cwd}:\ %t\ (%{expand(\"%:p:.:h\")}/)"
+  let &titlestring = "%{g:exvim_cwd}:\ %t\ (%{expand(\"%:p:.:h\")}/)"
 
   " set viewdir
   " NOTE: When the last path part of 'viewdir' does not exist, this directory is created
-  let &viewdir = g:exvim_dir.'/view'
+  let &viewdir = g:exvim_dir.'view'
 
   " set tapstop
   let space = conf.space
   let &tabstop = space
+  let &softtabstop = space
   let &shiftwidth = space
 
   " set tagrelative
@@ -59,25 +76,72 @@ function ex#conf#load(file)
 
   " set tags
   let s:old_tags = &tags
-  let &tags = fnameescape(s:old_tags.','.g:exvim_dir.'/tags')
+  let &tags = fnameescape(s:old_tags.','.g:exvim_dir.'tags')
 
-  " set ignores
-  if executable('rg')
-    let ignores = []
+  " set ack ignores
+  if exists ( ':Ack' )
+    let lines = []
     for ig in conf.ignores
-      call add(ignores, '-g')
-      call add(ignores, '!' . ig)
+      call add(lines, ig)
     endfor
-    let g:ctrlp_user_command = 'rg %s --no-ignore --hidden --files ' . join(ignores)
-  else
-    " set wildignore
-    " NOTE: we disable setting wildignore, it has so many restriction, and the
-    " syntax is very limit, only suport things like `*.png`. Not support `**/*`
-    let &wildignore = join(conf.ignores, ',')
-    let g:ctrlp_custom_ignore = {
-          \ 'dir':  '\v[\/]\.(git|hg|svn)$|target|node_modules|te?mp$|logs?$|public$|dist$',
-          \ 'file': '\v\.(exe|so|dll|ttf|png|gif|jpe?g|bpm)$|\-rplugin\~',
-          \ 'link': 'some_bad_symbolic_links',
-          \ }
+    let ignore_file = fnamemodify(a:dir.'rgignores', ':p')
+    call writefile(lines, ignore_file)
+    let g:ackprg = 'rg --vimgrep --ignore-file ' . ignore_file
+  endif
+
+  " set ignores for ctrlp
+  if g:loaded_ctrlp
+    if executable('rg')
+      let ignores = ''
+      let includes = ''
+
+      for ig in conf.ignores
+        let ignores .= '-g !'.ig.' '
+      endfor
+
+      for ic in conf.includes
+        let includes .= '-g '.ic.' '
+      endfor
+
+      " NOTE: includes should be first, then ignores will filter out include results
+      let g:ctrlp_user_command = 'rg %s --no-ignore --hidden --files ' . includes . ' ' . ignores
+    else
+      " set wildignore
+      " NOTE: wildignore don't support **/*
+      let &wildignore = join(conf.ignores, ',')
+      let g:ctrlp_custom_ignore = {
+            \ 'dir':  '\v[\/]\.(git|hg|svn)$|target|node_modules|te?mp$|logs?$|public$|dist$',
+            \ 'file': '\v\.(exe|so|dll|ttf|png|gif|jpe?g|bpm)$|\-rplugin\~',
+            \ 'link': 'some_bad_symbolic_links',
+            \ }
+    endif
+  endif
+
+  " set ignores for nerdtree
+  if g:loaded_nerd_tree
+    let g:NERDTreeIgnore = []
+    for ig in conf.ignores
+      if ig =~# '^\*\..*'
+        call add(g:NERDTreeIgnore, '\'.strpart(ig,1))
+      endif
+    endfor
+  endif
+endfunction
+
+" ex#conf#show {{{
+function ex#conf#show()
+  let file = fnamemodify(g:exvim_dir.'config.json', ':p')
+  if filereadable(file)
+    exe ' silent e ' . escape(file, ' ')
+
+    " do not show it in buffer list
+    setlocal bufhidden=hide
+    setlocal noswapfile
+    setlocal nobuflisted
+    setlocal nowrap
+
+    augroup EXVIM_BUFFER
+      au! BufWritePost <buffer> call ex#conf#load(g:exvim_dir)
+    augroup END
   endif
 endfunction

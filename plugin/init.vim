@@ -1,18 +1,28 @@
-let g:cwd = ''
+let g:exvim_ver = '1.0.6'
 let g:exvim_dir = ''
-let g:exvim_ver = '1.0.1'
+let g:exvim_cwd = ''
+
+function! s:barely_start_vim()
+  if argc() == 0
+    return 1
+  endif
+
+  if fnamemodify(argv(0), ':p:h') ==# fnamemodify(g:exvim_dir, ':p:h:h')
+    return 1
+  endif
+
+  return 0
+endfunction
 
 function! s:find_exvim_folder() abort
-  let exvim_dir_path = finddir(fnamemodify('.exvim', ':p'), '.;')
-  if exvim_dir_path != ''
-    let file = fnamemodify(exvim_dir_path.'config.json', ':p')
+  let path = finddir(fnamemodify('.exvim', ':p'), '.;')
+  if path ==# ''
+    return
+  endif
 
-    if filereadable(file)
-      call ex#conf#load(file)
-      return
-    endif
-
-    call ex#conf#new(file)
+  call ex#conf#load(path)
+  if s:barely_start_vim()
+    call ex#conf#show()
   endif
 endfunction
 
@@ -23,22 +33,15 @@ function! s:new_exvim_project(dir) abort
     return
   endif
 
-  let exvim_dir_path = finddir('.exvim', dir)
+  let exvim_dir_path = finddir(fnamemodify('.exvim', ':p'), dir)
 
   if exvim_dir_path == ''
-    let exvim_dir_path = dir.'.exvim'
+    let exvim_dir_path = dir.'.exvim/'
     silent call mkdir(exvim_dir_path)
   endif
 
-  let file = fnamemodify(exvim_dir_path.'/config.json', ':p')
-  if filereadable(file)
-    call ex#conf#load(file)
-    exe ' silent e ' . escape(file, ' ')
-    return
-  endif
-
-  call ex#conf#new(file)
-  exe ' silent e ' . escape(file, ' ')
+  call ex#conf#load(exvim_dir_path)
+  call ex#conf#show()
 endfunction
 
 " commands {{{
@@ -50,6 +53,6 @@ command! -nargs=? -complete=dir EXVIM call <SID>new_exvim_project('<args>')
 " autocmd {{{
 augroup VIM_ENTER
   au!
-  au VimEnter * call <SID>find_exvim_folder()
+  au VimEnter * nested call <SID>find_exvim_folder()
 augroup END
 " }}}
