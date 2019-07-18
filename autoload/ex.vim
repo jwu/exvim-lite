@@ -32,7 +32,7 @@ endfunction
 
 " ex#short_message {{{1
 " short the msg
-function ex#short_message( msg )
+function ex#short_message(msg)
   if len( a:msg ) <= &columns-13
     return a:msg
   endif

@@ -35,12 +35,12 @@ syn match   shaderShaderType      "\<\(vs\|ps\|gs\)_[1-4]_[0-4]\>"
 syn keyword shaderBaseFunction    CompileShader SetVertexShader SetGeometryShader SetPixelShader SetDepthStencilState pass compile technique
 
 " function
-syn keyword shaderFunction        abs acos all any asin atan atan2 ceil clamp clip cos cosh cross 
+syn keyword shaderFunction        abs acos all any asin atan atan2 ceil clamp clip cos cosh cross
 syn keyword shaderFunction        D3DCOLORtoUBYTE4 ddx ddy degress determinant distance dot exp exp2
 syn keyword shaderFunction        faceforward floor fmod frac frexp fwidth isfinite isinf isnan ldexp
 syn keyword shaderFunction        length lerp lit log log10 log2 max min modf mul noise normalize pow
 syn keyword shaderFunction        radians reflect refract round rsqrt saturate sign sin sincos sinh
-syn keyword shaderFunction        smoothstep sqrt step tan tanh tex1D tex1Dqrad tex1Dbias tex1Dgrad 
+syn keyword shaderFunction        smoothstep sqrt step tan tanh tex1D tex1Dqrad tex1Dbias tex1Dgrad
 syn keyword shaderFunction        tex1Dlod tex1Dproj tex2D tex2Dbias tex2Dqrad tex2Dlod tex2Dproj
 syn keyword shaderFunction        tex3D tex3Dbias tex3Dqrad tex3Dlod tex3Dproj texCUBE texCUBEqrad
 syn keyword shaderFunction        texCUBEproj transpose

@@ -154,12 +154,9 @@ function ex#window#record()
   endif
 
   let winnr = winnr()
-  let bufopts = []
   " if this is plugin window and do not have {action: norecord}
-  if ex#plugin#is_registered( winbufnr(winnr), bufopts )
-    if index( bufopts, 'norecord' ) == -1
-      let s:last_editplugin_bufnr = bufnr('%')
-    endif
+  if ex#plugin#is_registered(winbufnr(winnr))
+    let s:last_editplugin_bufnr = bufnr('%')
   else
     let s:last_editbuf_winid = w:ex_winid
   endif
@@ -180,17 +177,6 @@ endfunction
 " ex#window#last_edit_bufnr {{{
 function ex#window#last_edit_bufnr()
   return winbufnr(s:winid2nr(s:last_editbuf_winid))
-endfunction
-
-" ex#window#check_if_autoclose {{{
-function ex#window#check_if_autoclose( winnr )
-  let bufopts = []
-  if ex#plugin#is_registered( winbufnr(a:winnr), bufopts )
-    if index( bufopts, 'autoclose' ) != -1
-      return 1
-    endif
-  endif
-  return 0
 endfunction
 
 " ex#window#goto_edit_window {{{

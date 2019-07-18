@@ -1,26 +1,6 @@
 " ex#plugin#register {{{1
 
-" registered plugin used in exVim to make sure the current buffer is a
-" plugin buffer.
-" this is done by first check the filetype, and go through each item and
-" make sure the option of the buffer is same as the option you provide
-" NOTE: if the filetype is empty, exVim will use '__EMPTY__' rules to check
-" your buffer
-" DISABLE: we use ex#plugin#register instead
-" let s:registered_plugins = {
-"             \ 'explugin': [],
-"             \ 'exproject': [],
-"             \ 'minibufexpl': [ { 'bufname': '-MiniBufExplorer-', 'buftype': 'nofile' } ],
-"             \ 'taglist': [ { 'bufname': '__Tag_List__', 'buftype': 'nofile' } ],
-"             \ 'tagbar': [ { 'bufname': '__TagBar__', 'buftype': 'nofile' } ],
-"             \ 'nerdtree': [ { 'bufname': 'NERD_tree_\d\+', 'buftype': 'nofile' } ],
-"             \ 'undotree': [ { 'bufname': 'undotree_\d\+', 'buftype': 'nowrite' } ],
-"             \ 'diff': [ { 'bufname': 'diffpanel_\d\+', 'buftype': 'nowrite' } ],
-"             \ 'gitcommit': [],
-"             \ 'gundo': [],
-"             \ 'vimfiler': [],
-"             \ '__EMPTY__': [ { 'bufname': '-MiniBufExplorer-' } ]
-"             \ }
+" NOTE: if the filetype is empty, exvim will use '__EMPTY__' rules to check your buffer
 let s:registered_plugins = {}
 
 " debug print of registered plugins
@@ -64,7 +44,7 @@ function ex#plugin#register(filetype, options)
 endfunction
 
 " ex#plugin#is_registered {{{1
-function ex#plugin#is_registered(bufnr, ...)
+function ex#plugin#is_registered(bufnr)
   " if the buf didn't exists, don't do anything else
   if !bufexists(a:bufnr)
     return 0
@@ -112,16 +92,8 @@ function ex#plugin#is_registered(bufnr, ...)
         continue
       endif
 
-      " skip autoclose
-      if key ==# 'actions'
-        if a:0 > 0
-          silent call extend( a:1, value )
-        endif
-        continue
-      endif
-
       " check other option
-      let bufoption = getbufvar( a:bufnr, '&'.key )
+      let bufoption = getbufvar(a:bufnr, '&'.key)
       if bufoption !=# value
         let failed = 1
         break

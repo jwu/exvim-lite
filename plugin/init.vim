@@ -7,6 +7,11 @@ function! s:barely_start_vim()
     return 1
   endif
 
+  " if this is a file
+  if findfile(fnamemodify(argv(0), ':p')) !=# ''
+    return 0
+  endif
+
   if fnamemodify(argv(0), ':p:h') ==# fnamemodify(g:exvim_dir, ':p:h:h')
     return 1
   endif
@@ -21,9 +26,10 @@ function! s:find_exvim_folder() abort
   endif
 
   call ex#conf#load(path)
-  if s:barely_start_vim()
-    call ex#conf#show()
-  endif
+  " DISABLE:
+  " if s:barely_start_vim()
+  "   call ex#conf#show()
+  " endif
 endfunction
 
 function! s:new_exvim_project(dir) abort
@@ -73,11 +79,8 @@ augroup END
 " register Vim builtin window
 call ex#plugin#register('help', {'buftype': 'help'})
 call ex#plugin#register('qf', {'buftype': 'quickfix'})
-call ex#plugin#register( '__EMPTY__', { 'bufname': '-MiniBufExplorer-' } )
-call ex#plugin#register('minibufexpl', {'bufname': '-MiniBufExplorer-', 'buftype': 'nofile', 'actions': ['norecord']})
-call ex#plugin#register('taglist', {'bufname': '__Tag_List__', 'buftype': 'nofile', 'actions': ['autoclose']})
-call ex#plugin#register('tagbar', {'bufname': '__TagBar__', 'buftype': 'nofile', 'actions': ['autoclose']})
 call ex#plugin#register('nerdtree', {'bufname': 'NERD_tree_\d\+', 'buftype': 'nofile'})
-call ex#plugin#register('diff', {'bufname': 'diffpanel_\d\+', 'buftype': 'nowrite'})
-call ex#plugin#register('gitcommit', {})
+" call ex#plugin#register('minibufexpl', {'bufname': '-MiniBufExplorer-', 'buftype': 'nofile'})
+" call ex#plugin#register('taglist', {'bufname': '__Tag_List__', 'buftype': 'nofile'})
+" call ex#plugin#register('tagbar', {'bufname': '__TagBar__', 'buftype': 'nofile'})
 " }}}
