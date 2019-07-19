@@ -2,6 +2,39 @@ let g:exvim_ver = '1.0.6'
 let g:exvim_dir = ''
 let g:exvim_cwd = ''
 
+" default configuration {{{1
+if !exists('g:ex_search_winsize')
+  let g:ex_search_winsize = 20
+endif
+
+if !exists('g:ex_search_winsize_zoom')
+  let g:ex_search_winsize_zoom = 40
+endif
+
+" bottom or top
+if !exists('g:ex_search_winpos')
+  let g:ex_search_winpos = 'bottom'
+endif
+
+if !exists('g:ex_search_enable_sort')
+  let g:ex_search_enable_sort = 1
+endif
+
+" will not sort the result if result lines more than x
+if !exists('g:ex_search_sort_lines_threshold')
+  let g:ex_search_sort_lines_threshold = 100
+endif
+
+if !exists('g:ex_search_enable_help')
+  let g:ex_search_enable_help = 1
+endif
+
+if !exists('g:ex_search_globs')
+  let g:ex_search_globs = ''
+endif
+"}}}
+
+" internal functions {{{1
 function! s:barely_start_vim()
   if argc() == 0
     return 1
@@ -49,6 +82,7 @@ function! s:new_exvim_project(dir) abort
   call ex#conf#load(exvim_dir_path)
   call ex#conf#show()
 endfunction
+"}}}
 
 " commands {{{
 " when EXVIM noargs, load {cwd}/.exvim/config.json
@@ -63,6 +97,9 @@ command! EXbd call ex#buffer#keep_window_bd()
 command! EXsw call ex#window#switch_window()
 command! EXgp call ex#window#goto_plugin_window()
 
+command! -n=1 GS call ex#search#exec('<args>', '-s')
+command! EXSearchCWord call ex#search#exec(expand('<cword>'), '-s')
+
 command! EXplugins call ex#echo_registered_plugins()
 " }}}
 
@@ -75,12 +112,22 @@ augroup EXVIM
 augroup END
 " }}}
 
-" ex#register_plugin register plugins {{{
-" register Vim builtin window
+" register plugins {{{
 call ex#plugin#register('help', {'buftype': 'help'})
 call ex#plugin#register('qf', {'buftype': 'quickfix'})
+call ex#plugin#register('exsearch', {})
 call ex#plugin#register('nerdtree', {'bufname': 'NERD_tree_\d\+', 'buftype': 'nofile'})
 " call ex#plugin#register('minibufexpl', {'bufname': '-MiniBufExplorer-', 'buftype': 'nofile'})
 " call ex#plugin#register('taglist', {'bufname': '__Tag_List__', 'buftype': 'nofile'})
 " call ex#plugin#register('tagbar', {'bufname': '__TagBar__', 'buftype': 'nofile'})
+" }}}
+
+" highlight {{{
+hi clear EX_CONFIRM_LINE
+" hi EX_CONFIRM_LINE gui=none guibg=#ffe4b3 term=none cterm=none ctermbg=darkyellow
+hi default link EX_CONFIRM_LINE QuickFixLine
+
+hi clear EX_TARGET_LINE
+" hi EX_TARGET_LINE gui=none guibg=#ffe4b3 term=none cterm=none ctermbg=darkyellow
+hi default link EX_TARGET_LINE QuickFixLine
 " }}}

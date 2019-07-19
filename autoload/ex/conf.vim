@@ -105,6 +105,7 @@ function ex#conf#load(dir)
 
       " NOTE: includes should be first, then ignores will filter out include results
       let g:ctrlp_user_command = 'rg %s --no-ignore --hidden --files ' . includes . ' ' . ignores
+      let g:ex_search_globs = includes . ' ' . ignores
     else
       " set wildignore
       " NOTE: wildignore don't support **/*

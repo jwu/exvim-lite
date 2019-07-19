@@ -40,3 +40,43 @@ function ex#short_message(msg)
   let len = (&columns - 13 - 3) / 2
   return a:msg[:len] . "..." . a:msg[ (-len):]
 endfunction
+
+" ex#hl_clear_confirm {{{
+function ex#hl_clear_confirm()
+  match none
+endfunction
+
+" ex#hl_clear_target {{{
+function ex#hl_clear_target()
+  2match none
+endfunction
+
+" ex#hl_confirm_line {{{
+function ex#hl_confirm_line(linenr)
+  " clear previous highlight result
+  match none
+
+  " highlight the line pattern
+  let pat = '/\%' . a:linenr . 'l.*/'
+  silent exe 'match EX_CONFIRM_LINE ' . pat
+endfunction
+
+" ex#hl_target_line {{{
+function ex#hl_target_line(linenr)
+  " clear previous highlight result
+  2match none
+
+  " highlight the line pattern
+  let pat = '/\%' . a:linenr . 'l.*/'
+  silent exe '2match EX_TARGET_LINE ' . pat
+endfunction
+
+" DISABLE
+" " ex#hl_select_line {{{
+" function ex#hl_select_line()
+"     " Clear previously selected name
+"     3match none
+"     " Highlight the current line
+"     let pat = '/\%' . line('.') . 'l.*/'
+"     exe '3match ex_SynSelectLine ' . pat
+" endfunction
