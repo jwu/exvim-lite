@@ -9,7 +9,7 @@ function ex#conf#reset()
     let &tags = s:old_tags
 endfunction
 
-" ex#conf#new {{{
+" ex#conf#new_config {{{
 function ex#conf#new_config(file)
   let lines = [
         \ '{',
@@ -48,7 +48,7 @@ function ex#conf#load(dir)
   let conf = json_decode(join(lines))
 
   if conf.version != g:exvim_ver
-    call ex#conf#new(file)
+    call ex#conf#new_config(file)
     return
   endif
 

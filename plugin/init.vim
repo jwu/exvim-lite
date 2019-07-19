@@ -52,7 +52,7 @@ function! s:barely_start_vim()
   return 0
 endfunction
 
-function! s:find_exvim_folder() abort
+function! s:find_exvim_folder()
   let path = finddir(fnamemodify('.exvim', ':p'), '.;')
   if path ==# ''
     return
@@ -65,7 +65,7 @@ function! s:find_exvim_folder() abort
   " endif
 endfunction
 
-function! s:new_exvim_project(dir) abort
+function! s:new_exvim_project(dir)
   let dir = fnamemodify(a:dir, ':p')
   if dir == ''
     ex#error("Can't find path: " . a:dir)
