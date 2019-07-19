@@ -123,11 +123,10 @@ call ex#plugin#register('nerdtree', {'bufname': 'NERD_tree_\d\+', 'buftype': 'no
 " }}}
 
 " highlight {{{
+" #702963, #4b382a
 hi clear EX_CONFIRM_LINE
-" hi default link EX_CONFIRM_LINE QuickFixLine
-hi EX_CONFIRM_LINE gui=none guibg=#9f2f00 term=none cterm=none ctermbg=darkyellow
+hi EX_CONFIRM_LINE gui=none guibg=#702963 term=none cterm=none ctermbg=darkyellow
 
 hi clear EX_TARGET_LINE
-" hi default link EX_TARGET_LINE QuickFixLine
-hi EX_TARGET_LINE gui=none guibg=#9f2f00 term=none cterm=none ctermbg=darkyellow
+hi EX_TARGET_LINE gui=none guibg=#702963 term=none cterm=none ctermbg=darkyellow
 " }}}
