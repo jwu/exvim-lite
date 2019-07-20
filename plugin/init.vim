@@ -2,7 +2,7 @@ let g:exvim_ver = '1.0.6'
 let g:exvim_dir = ''
 let g:exvim_cwd = ''
 
-" default configuration {{{1
+" ex_search default configuration {{{1
 if !exists('g:ex_search_winsize')
   let g:ex_search_winsize = 15
 endif
@@ -25,12 +25,31 @@ if !exists('g:ex_search_sort_lines_threshold')
   let g:ex_search_sort_lines_threshold = 100
 endif
 
-if !exists('g:ex_search_enable_help')
-  let g:ex_search_enable_help = 1
-endif
-
 if !exists('g:ex_search_globs')
   let g:ex_search_globs = ''
+endif
+"}}}
+
+" ex_project default configuration {{{1
+if !exists('g:ex_project_file')
+  let g:ex_project_file = "./.exvim/files.exproject"
+endif
+
+if !exists('g:ex_project_winsize')
+  let g:ex_project_winsize = 30
+endif
+
+if !exists('g:ex_project_winsize_zoom')
+  let g:ex_project_winsize_zoom = 60
+endif
+
+" left or right
+if !exists('g:ex_project_winpos')
+  let g:ex_project_winpos = 'left'
+endif
+
+if !exists('g:ex_project_globs')
+  let g:ex_project_globs = ''
 endif
 "}}}
 
@@ -97,10 +116,15 @@ command! EXbd call ex#buffer#keep_window_bd()
 command! EXsw call ex#window#switch_window()
 command! EXgp call ex#window#goto_plugin_window()
 
+command! EXplugins call ex#echo_registered_plugins()
+
+" ex-search
 command! -n=1 GS call ex#search#exec('<args>', '-s')
 command! EXSearchCWord call ex#search#exec(expand('<cword>'), '-s')
 
-command! EXplugins call ex#echo_registered_plugins()
+" ex-project
+command! -n=? -complete=file EXProject call ex#project#open('<args>')
+command! EXProjectFind call ex#project#find_current_edit(1)
 " }}}
 
 " autocmd {{{
@@ -116,6 +140,7 @@ augroup END
 call ex#plugin#register('help', {'buftype': 'help'})
 call ex#plugin#register('qf', {'buftype': 'quickfix'})
 call ex#plugin#register('exsearch', {})
+call ex#plugin#register('exproject', {})
 call ex#plugin#register('nerdtree', {'bufname': 'NERD_tree_\d\+', 'buftype': 'nofile'})
 " call ex#plugin#register('minibufexpl', {'bufname': '-MiniBufExplorer-', 'buftype': 'nofile'})
 " call ex#plugin#register('taglist', {'bufname': '__Tag_List__', 'buftype': 'nofile'})
@@ -129,4 +154,7 @@ hi EX_CONFIRM_LINE gui=none guibg=#702963 term=none cterm=none ctermbg=darkyello
 
 hi clear EX_TARGET_LINE
 hi EX_TARGET_LINE gui=none guibg=#702963 term=none cterm=none ctermbg=darkyellow
+
+hi clear EX_TRANSPARENT
+hi EX_TRANSPARENT gui=none guifg=background term=none cterm=none ctermfg=darkgray
 " }}}

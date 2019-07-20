@@ -30,10 +30,6 @@ let s:help_text = s:help_short
 " functions {{{1
 " ex#search#toggle_help {{{2
 function ex#search#toggle_help()
-  if !g:ex_search_enable_help
-    return
-  endif
-
   let s:help_open = !s:help_open
   silent exec '1,' . len(s:help_text) . 'd _'
 
@@ -57,7 +53,7 @@ function ex#search#init_buffer()
     au BufWinLeave <buffer> call <SID>on_close()
   augroup END
 
-  if line('$') <= 1 && g:ex_search_enable_help
+  if line('$') <= 1
     silent call append(0, s:help_text)
     silent exec '$d'
   endif
@@ -242,13 +238,9 @@ function ex#search#exec(pattern, method)
   silent exec '1,$d _'
 
   " add online help
-  if g:ex_search_enable_help
-    silent call append ( 0, s:help_text )
-    silent exec '$d'
-    let start_line = len(s:help_text)
-  else
-    let start_line = 0
-  endif
+  silent call append ( 0, s:help_text )
+  silent exec '$d'
+  let start_line = len(s:help_text)
 
   " put the result
   silent exec 'normal ' . start_line . 'g'
@@ -287,11 +279,8 @@ function ex#search#filter( pattern, option, reverse )
   elseif a:option == 'file'
     let final_pattern = '\(.\+:\d\+:\)\&' . a:pattern
   endif
-  if g:ex_search_enable_help
-    let start_line = len(s:help_text)+2
-  else
-    let start_line = 3
-  endif
+
+  let start_line = len(s:help_text)+2
   let range = start_line.',$'
 
   " if reverse search, we first filter out not pattern line, then then filter pattern

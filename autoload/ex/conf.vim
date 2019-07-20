@@ -60,9 +60,9 @@ function ex#conf#load(dir)
   let s:old_titlestring = &titlestring
   let &titlestring = "%{g:exvim_cwd}:\ %t\ (%{expand(\"%:p:.:h\")}/)"
 
-  " set viewdir
+  " DISABLE: set viewdir
   " NOTE: When the last path part of 'viewdir' does not exist, this directory is created
-  let &viewdir = g:exvim_dir.'view'
+  " let &viewdir = g:exvim_dir.'view'
 
   " set tapstop
   let space = conf.space
@@ -78,44 +78,35 @@ function ex#conf#load(dir)
   let s:old_tags = &tags
   let &tags = fnameescape(s:old_tags.','.g:exvim_dir.'tags')
 
-  " set ack ignores
-  if exists ( ':Ack' )
-    let lines = []
+  " set ex-project file
+  let g:ex_project_file = fnamemodify(a:dir.'files.exproject', ':p')
+
+  " rg setup
+  if executable('rg')
+    let ignores = ''
+    let includes = ''
+
     for ig in conf.ignores
-      call add(lines, ig)
+      let ignores .= '-g !'.ig.' '
     endfor
-    let ignore_file = fnamemodify(a:dir.'rgignores', ':p')
-    call writefile(lines, ignore_file)
-    let g:ackprg = 'rg --vimgrep --ignore-file ' . ignore_file
-  endif
 
-  " set ignores for ctrlp
-  if g:loaded_ctrlp
-    if executable('rg')
-      let ignores = ''
-      let includes = ''
+    for ic in conf.includes
+      let includes .= '-g '.ic.' '
+    endfor
 
-      for ig in conf.ignores
-        let ignores .= '-g !'.ig.' '
-      endfor
+    " NOTE: includes should be first, then ignores will filter out include results
+    let rg_globs = includes . ' ' . ignores
 
-      for ic in conf.includes
-        let includes .= '-g '.ic.' '
-      endfor
-
-      " NOTE: includes should be first, then ignores will filter out include results
-      let g:ctrlp_user_command = 'rg %s --no-ignore --hidden --files ' . includes . ' ' . ignores
-      let g:ex_search_globs = includes . ' ' . ignores
-    else
-      " set wildignore
-      " NOTE: wildignore don't support **/*
-      let &wildignore = join(conf.ignores, ',')
-      let g:ctrlp_custom_ignore = {
-            \ 'dir':  '\v[\/]\.(git|hg|svn)$|target|node_modules|te?mp$|logs?$|public$|dist$',
-            \ 'file': '\v\.(exe|so|dll|ttf|png|gif|jpe?g|bpm)$|\-rplugin\~',
-            \ 'link': 'some_bad_symbolic_links',
-            \ }
+    " set includes & ignores for ctrlp
+    if g:loaded_ctrlp
+      let g:ctrlp_user_command = 'rg %s --no-ignore --hidden --files ' . rg_globs
     endif
+
+    " set includes & ignores for ex-search
+    let g:ex_search_globs = rg_globs
+
+    " set includes & ignores for ex-project
+    let g:ex_project_globs = rg_globs
   endif
 
   " set ignores for nerdtree
