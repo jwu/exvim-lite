@@ -4,7 +4,7 @@ let g:exvim_cwd = ''
 
 " default configuration {{{1
 if !exists('g:ex_search_winsize')
-  let g:ex_search_winsize = 20
+  let g:ex_search_winsize = 15
 endif
 
 if !exists('g:ex_search_winsize_zoom')
