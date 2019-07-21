@@ -250,7 +250,9 @@ function ex#search#exec(pattern, method)
   silent put =text
   let end_line = line('$')
 
-  " sort the search result
+  " manually sort the search result in vimscript
+  " NOTE: I avoid using `--sort path` in rg cause:
+  " sorting results always forces rg to abandon parallelism and run in a single thread.
   if g:ex_search_enable_sort == 1
     if (end_line-start_line) <= g:ex_search_sort_lines_threshold
       call s:sort_search_result ( start_line, end_line )
