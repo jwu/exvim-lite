@@ -68,34 +68,6 @@ function s:os_open(path)
   endif
 endfunction
 
-" DELME
-" s:pattern_last_words {{{2
-function s:pattern_last_words(list)
-  let pattern = '\m'
-  for word in a:list
-    if word == ''
-      continue
-    endif
-    let pattern = pattern . '\<' . word . '\>$\|'
-  endfor
-  return strpart(pattern, 0, strlen(pattern)-2)
-endfunction
-
-" DELME
-" s:pattern_files {{{2
-function s:pattern_files(list)
-  let pattern = '\m'
-  for word in a:list
-    if word == ''
-      continue
-    endif
-    let word = substitute(word, '\.','\\.',"g")
-    let word = substitute(word, '\*','.*', "g")
-    let pattern = pattern . '^' . word . '$\|'
-  endfor
-  return strpart(pattern, 0, strlen(pattern)-2)
-endfunction
-
 " s:mk_pattern
 function s:mk_pattern(list)
   let pattern = '\m'
@@ -104,8 +76,10 @@ function s:mk_pattern(list)
       continue
     endif
 
+    let item = substitute(item, '\*\*\/\*', '.*', 'g')
     let item = substitute(item, '\*\*', '.*', 'g')
-    let item = substitute(item, '\([^.]\|\)\*', '\1[^/]*', 'g')
+    let item = substitute(item, '\([^.]\)\*', '\1[^/]*', 'g')
+    let item = substitute(item, '^\*', '\1[^/]*', 'g')
     let pattern = pattern . item . '\|'
   endfor
   let pattern = strpart(pattern, 0, strlen(pattern)-2)
@@ -789,7 +763,6 @@ endfunction
 function ex#project#set_filters(ignores, includes)
   let s:ignore_patterns = s:mk_pattern(a:ignores)
   let s:include_patterns = s:mk_pattern(a:includes)
-  echomsg s:ignore_patterns
 endfunction
 
 " ex#project#newfile {{{2
