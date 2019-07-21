@@ -48,9 +48,11 @@ hi default link ex_pj_help_key Label
 hi default link ex_pj_help_comma Special
 
 hi default link ex_pj_fold EX_TRANSPARENT
-hi default link ex_pj_tree_line Comment
+" hi default link ex_pj_tree_line Comment
+hi default link ex_pj_tree_line SpecialKey
 
-hi default link ex_pj_folder_label Title
+" hi default link ex_pj_folder_label Title
+hi default link ex_pj_folder_label Error
 hi default link ex_pj_folder_name Directory
 
 hi default link ex_pj_file_name Normal

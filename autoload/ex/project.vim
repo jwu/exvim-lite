@@ -164,9 +164,9 @@ function s:set_level_list( linenr )
   let idx = 0
   while idx <= len
     if cur_line[idx] == '|'
-      silent call add( s:level_list, {'is_last':0,'short_dir':''} )
+      silent call add( s:level_list, {'is_last':0,'dirname':''} )
     else
-      silent call add( s:level_list, {'is_last':1,'short_dir':''} )
+      silent call add( s:level_list, {'is_last':1,'dirname':''} )
     endif
     let idx += 2
   endwhile
@@ -182,10 +182,10 @@ function s:build_tree( entry_path, file_pattern, file_ignore_pattern, folder_pat
   " show progress
   " echon ex#short_message( 'processing: ' . fnamemodify(a:entry_path, ':p:.') ) . "\r"
 
-  " get short_dir
-  " let short_dir = strpart( a:entry_path, strridx(a:entry_path,'\')+1 )
+  " get dirname
+  " let dirname = strpart( a:entry_path, strridx(a:entry_path,'\')+1 )
   let included = a:included
-  let short_dir = fnamemodify( a:entry_path, ':t' )
+  let dirname = fnamemodify( a:entry_path, ':t' )
   let is_dir = isdirectory(a:entry_path)
 
   let level_list_len = len(s:level_list)
@@ -243,7 +243,8 @@ function s:build_tree( entry_path, file_pattern, file_ignore_pattern, folder_pat
       let list_count += 1
     endwhile
 
-    silent call add(s:level_list, {'is_last':0,'short_dir':short_dir})
+    silent call add(s:level_list, {'is_last':0,'dirname':dirname})
+
     " recuseve browse list
     let list_last = len(file_list)-1
     let list_idx = list_last
@@ -299,7 +300,7 @@ function s:build_tree( entry_path, file_pattern, file_ignore_pattern, folder_pat
     endif
     let list_idx += 1
   endfor
-  let space = space.'-'
+  let space = space . '-'
 
   " get end_fold
   let end_fold = ''
@@ -321,16 +322,16 @@ function s:build_tree( entry_path, file_pattern, file_ignore_pattern, folder_pat
   if is_dir == 0
     " if file_end enter a new line for it
     if end_fold != ''
-      let end_space = strpart(space,0,strridx(space,'-')-1)
-      let end_space = strpart(end_space,0,strridx(end_space,'|')+1)
+      let end_space = strpart(space, 0, strridx(space, '-') - 1)
+      let end_space = strpart(end_space, 0, strridx(end_space, '|') + 1)
       silent put! = end_space " . end_fold
     endif
 
     " put it
-    " let file_type = strpart( short_dir, strridx(short_dir,'.')+1, 1 )
-    let file_type = strpart( fnamemodify( short_dir, ":e" ), 0, 1 )
-    " silent put! = space.'['.file_type.']'.short_dir . end_fold
-    silent put! = space.short_dir . end_fold
+    " let file_type = strpart( dirname, strridx(dirname,'.')+1, 1 )
+    let file_type = strpart( fnamemodify( dirname, ":e" ), 0, 1 )
+    " silent put! = space.'['.file_type.']'.dirname . end_fold
+    silent put! = space . dirname . end_fold
     return 0
   else
     "silent put = strpart(space, 0, strridx(space,'\|-')+1)
@@ -345,9 +346,9 @@ function s:build_tree( entry_path, file_pattern, file_ignore_pattern, folder_pat
       endif
       let end_fold = end_fold . ' }'
       silent put! = end_space
-      silent put! = space.'[F]'.short_dir . ' {' . end_fold
+      silent put! = space . '[F]' . dirname . ' {' . end_fold
     else
-      silent put! = space.'[F]'.short_dir . ' {'
+      silent put! = space . '[F]' . dirname . ' {'
     endif
   endif
 
@@ -712,7 +713,7 @@ function ex#project#refresh_current_folder()
     let full_path_name = s:getname(line('.'))
     let fold_level += 1
   endif
-  let short_dir = full_path_name
+  let dirname = full_path_name
 
   " fold_level 0 will not set path name
   if fold_level == 0
@@ -774,7 +775,7 @@ function ex#project#refresh_current_folder()
   let cur_line = getline('.')
 
   " if this is a empty directory, return
-  let pattern = '\C\[F\].*\<' . short_dir . '\> {'
+  let pattern = '\C\[F\].*\<' . dirname . '\> {'
   if match(cur_line, pattern) == -1
     call ex#warning ('The folder is empty')
     return
@@ -786,7 +787,7 @@ function ex#project#refresh_current_folder()
   let idx_end = stridx(cur_line, ' {')
   let end_part = strpart(cur_line,idx_end)
 
-  silent call setline('.', start_part . short_dir . end_part)
+  silent call setline('.', start_part . dirname . end_part)
 
   " save the changes
   silent exec 'w!'
