@@ -156,7 +156,7 @@ function ex#search#confirm_select(modifier)
       " get line number
       let line = strpart(line, idx+1)
       let idx = stridx(line, ":")
-      let linenr  = eval(strpart(line, 0, idx))
+      let linenr = eval(strpart(line, 0, idx))
     endif
     exe ' silent pedit +'.linenr . ' ' .escape(filename, ' ')
     silent! wincmd P
@@ -174,7 +174,7 @@ function ex#search#confirm_select(modifier)
       " get line number
       let line = strpart(line, idx+1)
       let idx = stridx(line, ":")
-      let linenr  = eval(strpart(line, 0, idx))
+      let linenr = eval(strpart(line, 0, idx))
       exec ' call cursor(linenr, 1)'
 
       " jump to the pattern if the code have been modified

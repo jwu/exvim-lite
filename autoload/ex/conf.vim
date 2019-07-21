@@ -52,6 +52,28 @@ function ex#conf#load(dir)
     return
   endif
 
+  " check if rg installed
+  if !executable('rg')
+    call ex#warning('rg is not executable, please install it first.')
+    return
+  endif
+
+  " rg globs
+  let ignores = ''
+  let includes = ''
+
+  for ig in conf.ignores
+    let ignores .= '-g !'.ig.' '
+  endfor
+
+  for ic in conf.includes
+    let includes .= '-g '.ic.' '
+  endfor
+
+  " NOTE: includes should be first, then ignores will filter out include results
+  let rg_globs = includes . ' ' . ignores
+
+  " set exvim global variables
   let g:exvim_dir = fnamemodify(a:dir, ':p')
   let g:exvim_cwd = fnamemodify(a:dir, ':p:h:h')
 
@@ -78,35 +100,16 @@ function ex#conf#load(dir)
   let s:old_tags = &tags
   let &tags = fnameescape(s:old_tags.','.g:exvim_dir.'tags')
 
-  " set ex-project file
+  " set ex-project
   let g:ex_project_file = fnamemodify(a:dir.'files.exproject', ':p')
+  call ex#project#set_filters(conf.ignores, conf.includes)
 
-  " rg setup
-  if executable('rg')
-    let ignores = ''
-    let includes = ''
+  " set ex-search
+  let g:ex_search_globs = rg_globs
 
-    for ig in conf.ignores
-      let ignores .= '-g !'.ig.' '
-    endfor
-
-    for ic in conf.includes
-      let includes .= '-g '.ic.' '
-    endfor
-
-    " NOTE: includes should be first, then ignores will filter out include results
-    let rg_globs = includes . ' ' . ignores
-
-    " set includes & ignores for ctrlp
-    if g:loaded_ctrlp
-      let g:ctrlp_user_command = 'rg %s --no-ignore --hidden --files ' . rg_globs
-    endif
-
-    " set includes & ignores for ex-search
-    let g:ex_search_globs = rg_globs
-
-    " set includes & ignores for ex-project
-    let g:ex_project_globs = rg_globs
+  " set ctrlp
+  if g:loaded_ctrlp
+    let g:ctrlp_user_command = 'rg %s --no-ignore --hidden --files ' . rg_globs
   endif
 
   " set ignores for nerdtree

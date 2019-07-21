@@ -1,10 +1,8 @@
 " variables {{{1
-let s:cur_project_file = ""
+let s:cur_project_file = ''
 
-let s:file_filters = []
-let s:file_ignore_patterns = []
-let s:folder_filters = []
-let s:folder_filter_include = 1
+let s:ignore_patterns = ''
+let s:include_patterns = ''
 
 let s:zoom_in = 0
 
@@ -29,6 +27,12 @@ let s:help_short = [
       \ '',
       \ ]
 let s:help_text = s:help_short
+
+" path separater depends by platform
+let s:sep = '/'
+if (has('win16') || has('win32') || has('win64'))
+  let s:sep = '\'
+endif
 " }}}
 
 " internal functions {{{1
@@ -56,6 +60,7 @@ function s:os_open(path)
     silent exec '!open ' . path
     call ex#hint('open ' . path)
   elseif s:os_is('windows')
+    let path = substitute(path, '\/', '\\', 'g')
     silent exec '!explorer ' . path
     call ex#hint('explorer ' . path)
   else
@@ -63,36 +68,59 @@ function s:os_open(path)
   endif
 endfunction
 
+" DELME
 " s:pattern_last_words {{{2
 function s:pattern_last_words(list)
-    let pattern = '\m'
-    for word in a:list
-        if word == ''
-            continue
-        endif
-        let pattern = pattern . '\<' . word . '\>$\|'
-    endfor
-    return strpart(pattern, 0, strlen(pattern)-2)
+  let pattern = '\m'
+  for word in a:list
+    if word == ''
+      continue
+    endif
+    let pattern = pattern . '\<' . word . '\>$\|'
+  endfor
+  return strpart(pattern, 0, strlen(pattern)-2)
 endfunction
 
+" DELME
 " s:pattern_files {{{2
 function s:pattern_files(list)
-    let pattern = '\m'
-    for word in a:list
-        if word == ''
-            continue
-        endif
-        let word = substitute(word, '\.','\\.',"g")
-        let word = substitute(word, '\*','.*', "g")
-        let pattern = pattern . '^' . word . '$\|'
-    endfor
-    return strpart(pattern, 0, strlen(pattern)-2)
+  let pattern = '\m'
+  for word in a:list
+    if word == ''
+      continue
+    endif
+    let word = substitute(word, '\.','\\.',"g")
+    let word = substitute(word, '\*','.*', "g")
+    let pattern = pattern . '^' . word . '$\|'
+  endfor
+  return strpart(pattern, 0, strlen(pattern)-2)
+endfunction
+
+" s:mk_pattern
+function s:mk_pattern(list)
+  let pattern = '\m'
+  for item in a:list
+    if item == ''
+      continue
+    endif
+
+    let item = substitute(item, '\*\*', '.*', 'g')
+    let item = substitute(item, '\([^.]\|\)\*', '\1[^/]*', 'g')
+    let pattern = pattern . item . '\|'
+  endfor
+  let pattern = strpart(pattern, 0, strlen(pattern)-2)
+
+  if s:os_is('windows')
+    let pattern = substitute(pattern, '\/', '\\\\', 'g')
+  endif
+
+  return pattern
 endfunction
 
 " s:search_for_pattern {{{2
 function s:search_for_pattern( linenr, pattern )
   for linenr in range(a:linenr , 1 , -1)
-    if match( getline(linenr) , a:pattern ) != -1
+    if match(getline(linenr) , a:pattern) != -1
       return linenr
     endif
   endfor
@@ -178,75 +206,56 @@ function s:sort_filename( i1, i2 )
 endfunction
 
 " s:build_tree {{{2
-function s:build_tree( entry_path, file_pattern, file_ignore_pattern, folder_pattern, folder_filter_include, included )
+function s:build_tree(path, ignore_patterns, include_patterns, included)
   " show progress
-  " echon ex#short_message( 'processing: ' . fnamemodify(a:entry_path, ':p:.') ) . "\r"
+  " echon ex#short_message( 'processing: ' . fnamemodify(a:path, ':p:.') ) . "\r"
 
   " get dirname
-  " let dirname = strpart( a:entry_path, strridx(a:entry_path,'\')+1 )
+  " let dirname = strpart( a:path, strridx(a:path,'\')+1 )
   let included = a:included
-  let dirname = fnamemodify( a:entry_path, ':t' )
-  let is_dir = isdirectory(a:entry_path)
+  let dirname = fnamemodify(a:path, ':t')
+  let is_dir = isdirectory(a:path)
 
   let level_list_len = len(s:level_list)
   let is_rootfile = (level_list_len == 1 && is_dir == 0) || level_list_len == 0
 
   " if directory
   if is_dir == 1
-    " split the first level to file_list
-    let file_list = split(globpath(a:entry_path,'*'),'\n') " NOTE, globpath('.','.*') will show hidden folder
+    " split the first level to results
+    let results = split(globpath(a:path, '*'), '\n') " NOTE, globpath('.','.*') will show hidden folder
     let inc_list = []
-    silent call sort( file_list, function('s:sort_filename') )
+    silent call sort(results, function('s:sort_filename'))
 
     " sort and filter the list as we want (file|dir )
     let list_idx = 0
-    let list_last = len(file_list)-1
+    let list_last = len(results)-1
     let list_count = 0
     while list_count <= list_last
-      " remove not fit file types
-      if isdirectory(file_list[list_idx]) == 0
-        let suffix = fnamemodify ( file_list[list_idx], ':e' )
-        if suffix == ''
-          let suffix = '__EMPTY__'
-        endif
-        let filename = fnamemodify ( file_list[list_idx], ':t' )
-        " move the file to the end of the list
+      " remove ignore results
+      if match(results[list_idx], a:ignore_patterns) != -1
+        silent call remove(results, list_idx)
 
-        if (a:file_ignore_pattern == "" || match ( filename, a:file_ignore_pattern) == -1) && match ( suffix, a:file_pattern ) != -1
-          let file = remove(file_list,list_idx)
-          silent call add(file_list, file)
-        else " if not found file type in file filter
-          silent call remove(file_list,list_idx)
-        endif
-        let list_idx -= 1
-
-      elseif a:folder_pattern != '' " remove not fit dirs
-        " if folder filter mode is exclude
-        if a:folder_filter_include == 0
-          if match( file_list[list_idx], a:folder_pattern ) != -1
-            silent call remove(file_list,list_idx)
-            let list_idx -= 1
-          endif
-        endif
-
-        " DISABLE: in our case, globpath never search hidden folder. {
-        " elseif len (s:level_list) == 0 " in first level directory, if we .vimfiles* folders, remove them
-        "   if match( file_list[list_idx], '\<.vimfiles.*' ) != -1
-        "     silent call remove(file_list,list_idx)
-        "     let list_idx -= 1
-        "   endif
-        " } DISABLE end
+        let list_count += 1
+        continue
       endif
 
-      "
+      " move the file to the end of the list
+      if isdirectory(results[list_idx]) == 0
+        let file = remove(results, list_idx)
+        silent call add(results, file)
+
+        let list_count += 1
+        continue
+      endif
+
       let list_idx += 1
       let list_count += 1
     endwhile
 
-    silent call add(s:level_list, {'is_last':0,'dirname':dirname})
+    silent call add(s:level_list, {'is_last': 0, 'dirname': dirname})
 
     " recuseve browse list
-    let list_last = len(file_list)-1
+    let list_last = len(results)-1
     let list_idx = list_last
     let s:level_list[len(s:level_list)-1].is_last = 1
     while list_idx >= 0
@@ -256,24 +265,23 @@ function s:build_tree( entry_path, file_pattern, file_ignore_pattern, folder_pat
 
       let child_included = a:included
 
-      " if folder filter mode is include and we are not included
-      if a:folder_pattern != '' && a:folder_filter_include && child_included == 0
-        if match( file_list[list_idx], a:folder_pattern ) != -1
-          let child_included = 1
-        endif
-      endif
+      " DELME
+      " " if folder filter mode is include and we are not included
+      " if a:folder_pattern != '' && a:folder_filter_include && child_included == 0
+      "   if match( results[list_idx], a:folder_pattern ) != -1
+      "     let child_included = 1
+      "   endif
+      " endif
 
       " if the folder is empty or the folder/file is not added by filter
       if s:build_tree(
-            \ file_list[list_idx],
-            \ a:file_pattern,
-            \ a:file_ignore_pattern,
-            \ a:folder_pattern,
-            \ a:folder_filter_include,
+            \ results[list_idx],
+            \ a:ignore_patterns,
+            \ a:include_patterns,
             \ child_included
             \ ) == 1
-        silent call remove(file_list,list_idx)
-        let list_last = len(file_list)-1
+        silent call remove(results, list_idx)
+        let list_last = len(results)-1
       else
         let included = 1
       endif
@@ -281,24 +289,18 @@ function s:build_tree( entry_path, file_pattern, file_ignore_pattern, folder_pat
       let list_idx -= 1
     endwhile
 
-    silent call remove( s:level_list, len(s:level_list)-1 )
+    silent call remove(s:level_list, len(s:level_list)-1)
 
-    if len(file_list) == 0
+    if len(results) == 0
       return 1
     endif
   endif
 
   " write space
   let space = ''
-  let list_idx = 0
   let list_last = len(s:level_list)-1
   for level in s:level_list
-    if level.is_last != 0 && list_idx != list_last
-      let space = space . '  '
-    else
-      let space = space . ' |'
-    endif
-    let list_idx += 1
+    let space = space . ' |'
   endfor
   let space = space . '-'
 
@@ -313,10 +315,10 @@ function s:build_tree( entry_path, file_pattern, file_ignore_pattern, folder_pat
     endif
   endfor
 
-  "
-  if is_rootfile == 0 && a:folder_pattern != '' && a:folder_filter_include == 1 && included == 0
-    return 1
-  endif
+  " DELME
+  " if is_rootfile == 0 && a:folder_pattern != '' && a:folder_filter_include == 1 && included == 0
+  "   return 1
+  " endif
 
   " judge if it is a dir
   if is_dir == 0
@@ -328,21 +330,21 @@ function s:build_tree( entry_path, file_pattern, file_ignore_pattern, folder_pat
     endif
 
     " put it
-    " let file_type = strpart( dirname, strridx(dirname,'.')+1, 1 )
-    let file_type = strpart( fnamemodify( dirname, ":e" ), 0, 1 )
+    " let file_type = strpart(dirname, strridx(dirname,'.')+1, 1)
+    let file_type = strpart(fnamemodify(dirname, ":e"), 0, 1)
     " silent put! = space.'['.file_type.']'.dirname . end_fold
     silent put! = space . dirname . end_fold
     return 0
   else
     "silent put = strpart(space, 0, strridx(space,'\|-')+1)
-    if len(file_list) == 0 " if it is a empty directory
+    if len(results) == 0 " if it is a empty directory
       if end_fold == ''
         " if dir_end enter a new line for it
-        let end_space = strpart(space,0,strridx(space,'-'))
+        let end_space = strpart(space, 0, strridx(space, '-'))
       else
         " if dir_end enter a new line for it
-        let end_space = strpart(space,0,strridx(space,'-')-1)
-        let end_space = strpart(end_space,0,strridx(end_space,'|')+1)
+        let end_space = strpart(space, 0, strridx(space, '-')-1)
+        let end_space = strpart(end_space, 0, strridx(end_space,'|')+1)
       endif
       let end_fold = end_fold . ' }'
       silent put! = end_space
@@ -354,7 +356,6 @@ function s:build_tree( entry_path, file_pattern, file_ignore_pattern, folder_pat
 
   return 0
 endfunction
-
 " }}}1
 
 " functions {{{1
@@ -591,24 +592,19 @@ function ex#project#build_tree()
   let s:level_list = [] " init level list
 
   " get entry dir
-  let entry_dir = getcwd()
-  if exists('g:ex_cwd')
-    let entry_dir = g:ex_cwd
+  let cwd = getcwd()
+  if exists('g:exvim_cwd')
+    let cwd = g:exvim_cwd
   endif
 
-  echon 'Creating ex_project: ' . entry_dir . "\r"
+  echon 'Creating ex_project: ' . cwd . "\r"
   silent exec '1,$d _'
 
   " start tree building
-  let file_filter_pattern = s:pattern_last_words(s:file_filters)
-  let folder_filter_patern = s:pattern_last_words(s:folder_filters)
-  let file_ignore_pattern = s:pattern_files(s:file_ignore_patterns)
   call s:build_tree(
-        \ entry_dir,
-        \ file_filter_pattern,
-        \ file_ignore_pattern,
-        \ folder_filter_patern,
-        \ s:folder_filter_include,
+        \ cwd,
+        \ s:ignore_patterns,
+        \ s:include_patterns,
         \ 0,
         \ )
 
@@ -619,7 +615,7 @@ function ex#project#build_tree()
 
   " save the build
   silent exec 'w!'
-  echon 'ex_project: ' . entry_dir . ' created!' . "\r"
+  echon 'ex_project: ' . cwd . ' created!' . "\r"
 endfunction
 
 " ex#project#find_current_edit {{{2
@@ -759,15 +755,10 @@ function ex#project#refresh_current_folder()
   silent exec 'normal! "_2dd'
 
   " start broswing
-  let file_filter_pattern = s:pattern_last_words(s:file_filters)
-  let folder_filter_patern = s:pattern_last_words(s:folder_filters)
-  let file_ignore_pattern = s:pattern_files(s:file_ignore_patterns)
   call s:build_tree(
         \ full_path_name,
-        \ file_filter_pattern,
-        \ file_ignore_pattern,
-        \ folder_filter_patern,
-        \ s:folder_filter_include,
+        \ s:ignore_patterns,
+        \ s:include_patterns,
         \ 1
         \ )
 
@@ -794,24 +785,11 @@ function ex#project#refresh_current_folder()
   echon "ex-project: Refresh folder: " . full_path_name . " done!\r"
 endfunction
 
-" ex#project#set_file_filters {{{2
-function ex#project#set_file_filters( filters )
-  let s:file_filters = copy(a:filters)
-endfunction
-
-" ex#project#set_file_ignore_patterns {{{2
-function ex#project#set_file_ignore_patterns( patterns )
-  let s:file_ignore_patterns = copy(a:patterns)
-endfunction
-
-" ex#project#set_folder_filters {{{2
-function ex#project#set_folder_filters( filters )
-  let s:folder_filters = copy(a:filters)
-endfunction
-
-" ex#project#set_folder_filter_mode {{{2
-function ex#project#set_folder_filter_mode( mode )
-  let s:folder_filter_include = (a:mode == 'include')
+" ex#project#set_filters {{{2
+function ex#project#set_filters(ignores, includes)
+  let s:ignore_patterns = s:mk_pattern(a:ignores)
+  let s:include_patterns = s:mk_pattern(a:includes)
+  echomsg s:ignore_patterns
 endfunction
 
 " ex#project#newfile {{{2
