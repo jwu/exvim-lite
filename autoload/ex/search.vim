@@ -247,7 +247,7 @@ function ex#search#exec(pattern, method)
   let header = '---------- ' . a:pattern . ' ----------'
   let start_line += 1
   let text = header . "\n" . result
-  silent put =text
+  silent put = text
   let end_line = line('$')
 
   " manually sort the search result in vimscript

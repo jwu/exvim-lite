@@ -18,7 +18,7 @@ hi default link ex_search_help Comment
 hi default link ex_search_help_key Label
 hi default link ex_search_help_comma Special
 
-hi default link ex_search_header Statement
+hi default link ex_search_header Title
 hi default link ex_search_filename Directory
 hi default link ex_search_linenr Number
 
