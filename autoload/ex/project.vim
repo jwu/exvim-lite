@@ -76,11 +76,24 @@ function s:mk_pattern(list)
       continue
     endif
 
+    " replace foo.bar to foo\.bar
+    " replace $foobar to \$foobar
+    " replace ~foobar to \~foobar
     let item = escape(item, '.~$')
+
+    " replace foo/**/* to foo/.*
     let item = substitute(item, '\*\*\/\*', '.*', 'g')
+
+    " replace foo/** to foo/.*
     let item = substitute(item, '\*\*', '.*', 'g')
+
+    " replace foo/** to foo/.*
     let item = substitute(item, '\([^.]\)\*', '\1[^/]*', 'g')
-    let item = substitute(item, '^\*', '[^/]*', 'g')
+
+    " replace *\.foo to [^/]*\.foo$
+    let item = substitute(item, '^\*\\\.\(\S\+\)$', '[^/]*\.\1$', 'g')
+
+    " append \|
     let pattern = pattern . item . '\|'
   endfor
   let pattern = strpart(pattern, 0, strlen(pattern)-2)
