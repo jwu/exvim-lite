@@ -80,7 +80,7 @@ function ex#conf#load(dir)
   " set parent working directory
   silent exec 'cd ' . fnameescape(g:exvim_cwd)
   let s:old_titlestring = &titlestring
-  let &titlestring = "%{g:exvim_cwd}:\ %t\ (%{expand(\"%:p:.:h\")})"
+  let &titlestring = "%{g:exvim_cwd}:\ %t\ (%{expand(\"%:p:.:h\")}" . ex#os_sep() . ")"
 
   " DISABLE: set viewdir
   " NOTE: When the last path part of 'viewdir' does not exist, this directory is created
@@ -121,12 +121,6 @@ function ex#conf#load(dir)
       endif
     endfor
   endif
-
-  " layout
-  " if exists(':NERDTreeClose')
-  "   exec 'NERDTreeClose'
-  " endif
-  " silent exec 'EXProject'
 endfunction
 
 " ex#conf#show {{{

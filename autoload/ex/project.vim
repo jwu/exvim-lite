@@ -28,13 +28,6 @@ let s:help_short = [
       \ ]
 let s:help_text = s:help_short
 
-" path separater depends by platform
-let s:sep = '/'
-if (has('win16') || has('win32') || has('win64'))
-  let s:sep = '\'
-endif
-" }}}
-
 " internal functions {{{1
 
 " s:os_is {{{2
@@ -116,7 +109,7 @@ function s:search_for_pattern( linenr, pattern )
 endfunction
 
 " s:getname {{{2
-function s:getname( linenr )
+function s:getname(linenr)
   let line = getline(a:linenr)
   " let line = substitute(line,'.\{-}\[.\{-}\]\(.\{-}\)','\1','')
   let line = substitute(line,'.\{-}-\(\[F\]\)\{0,1}\(.\{-}\)','\2','')
@@ -132,13 +125,13 @@ endfunction
 
 " s:getpath {{{2
 " Desc: Get the full path of the line, by YJR
-function s:getpath( linenr )
+function s:getpath(linenr)
   let foldlevel = s:getfoldlevel(a:linenr)
-  let fullpath = ""
+  let fullpath = ''
 
   " recursively make full path
-  if match(getline(a:linenr),'[^^]-\C\[F\]') != -1
-    let fullpath = s:getname( a:linenr )
+  if match(getline(a:linenr), '[^^]-\C\[F\]') != -1
+    let fullpath = s:getname(a:linenr)
   endif
 
   let level_pattern = repeat('.',foldlevel-1)
@@ -587,22 +580,32 @@ function ex#project#build_tree()
   echon 'ex_project: ' . cwd . ' created!' . "\r"
 endfunction
 
-" ex#project#find_current_edit {{{2
-function ex#project#find_current_edit(focus)
+" ex#project#find {{{2
+function ex#project#find(path)
   " first jump to edit window
   call ex#window#goto_edit_window()
 
-  " get current buffer name then jump
-  let bufname = bufname('%')
-  let cur_filename = fnamemodify(bufname, ':t')
-  let cur_filepath = fnamemodify(bufname, ':p')
+  " if path is empty, find current edit buffer
+  let path = a:path
+  if path ==# ''
+    let path = bufname('%')
+  endif
+
+  " strip last separator
+  if path[strlen(path)-1] ==# ex#os_sep()
+    let path = strpart(path, 0, strlen(path)-1)
+  endif
+
+  let filename = fnamemodify(path, ':t')
+  let filepath = fnamemodify(path, ':p')
+  let is_dir = isdirectory(filepath)
 
   " go to the project window
   call ex#project#open_window()
 
   " store position if we don't find, restore to the position
-  let cursor_line = line ('.')
-  let cursor_col = col ('.')
+  let cursor_line = line('.')
+  let cursor_col = col('.')
 
   " now go to the top start search
   silent normal gg
@@ -610,10 +613,15 @@ function ex#project#find_current_edit(focus)
   " process search
   let found = 0
   while !found
-    if search( cur_filename, 'W' ) > 0
-      let linenr = line ('.')
-      let searchfilename = s:getpath(linenr) . s:getname(linenr)
-      if fnamemodify(searchfilename , ':p') == cur_filepath
+    if search(filename, 'W') > 0
+      let linenr = line('.')
+      let searchfilename = s:getpath(linenr)
+
+      if !is_dir
+        let searchfilename = searchfilename . s:getname(linenr)
+      endif
+
+      if fnamemodify(searchfilename , ':p') == filepath
         silent call cursor(linenr, 0)
 
         " unfold the line if it's folded
@@ -622,25 +630,20 @@ function ex#project#find_current_edit(focus)
         " if find, set the text line in the middel of the window
         silent normal! zz
 
-        "
         let found = 1
-        echon 'Locate file: ' . bufname . "\r"
+        echon 'Locate file: ' . path . "\r"
         break
       endif
 
-      " if file not found, warning and back to edit window regardless a:focus
+    " if file not found, warning and back to edit window regardless a:focus
     else
-      silent call cursor ( cursor_line, cursor_col )
-      call ex#warning('File not found: ' . fnamemodify(cur_filepath, ':p:.') )
+      silent call cursor(cursor_line, cursor_col)
+      call ex#warning('File not found: ' . fnamemodify(filepath, ':p:.') )
       call ex#window#goto_edit_window()
+
       return
     endif
   endwhile
-
-  " back to edit buffer if needed
-  if !a:focus
-    call ex#window#goto_edit_window()
-  endif
 endfunction
 
 " ex#project#refresh_current_folder {{{2

@@ -72,16 +72,24 @@ function! s:barely_start_vim()
 endfunction
 
 function! s:find_exvim_folder()
-  let path = finddir(fnamemodify('.exvim', ':p'), '.;')
+  " find .exvim/ upward recursively
+  let path = finddir('.exvim', '.;')
   if path ==# ''
     return
   endif
 
+  " make sure we have '/' suffix for dir
+  let path .= '/'
   call ex#conf#load(path)
-  " DISABLE:
-  " if s:barely_start_vim()
-  "   call ex#conf#show()
-  " endif
+
+  " if we have file to edit
+  let target = fnamemodify(argv(0), ':p')
+  if findfile(target) ==# ''
+    call ex#conf#show()
+    silent exec 'EXProject'
+  else
+    silent exec 'EXProject'
+  endif
 endfunction
 
 function! s:new_exvim_project(dir)
@@ -124,7 +132,7 @@ command! EXSearchCWord call ex#search#exec(expand('<cword>'), '-s')
 
 " ex-project
 command! -n=? -complete=file EXProject call ex#project#open('<args>')
-command! EXProjectFind call ex#project#find_current_edit(1)
+command! -n=? -complete=file EXProjectFind call ex#project#find('<args>')
 " }}}
 
 " autocmd {{{

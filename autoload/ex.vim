@@ -1,3 +1,9 @@
+" path separater depends by platform
+let s:sep = '/'
+if (has('win16') || has('win32') || has('win64'))
+  let s:sep = '\'
+endif
+
 " ex#hint {{{1
 " msg: string
 function ex#hint(msg)
@@ -69,4 +75,9 @@ function ex#hl_confirm_line(linenr)
   " highlight the line pattern
   let pat = '/\%' . a:linenr . 'l.*/'
   silent exe '3match EX_CONFIRM_LINE ' . pat
+endfunction
+
+" ex#os_sep {{{
+function ex#os_sep()
+  return s:sep
 endfunction
