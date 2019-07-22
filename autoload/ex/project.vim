@@ -76,10 +76,11 @@ function s:mk_pattern(list)
       continue
     endif
 
+    let item = escape(item, '.~$')
     let item = substitute(item, '\*\*\/\*', '.*', 'g')
     let item = substitute(item, '\*\*', '.*', 'g')
     let item = substitute(item, '\([^.]\)\*', '\1[^/]*', 'g')
-    let item = substitute(item, '^\*', '\1[^/]*', 'g')
+    let item = substitute(item, '^\*', '[^/]*', 'g')
     let pattern = pattern . item . '\|'
   endfor
   let pattern = strpart(pattern, 0, strlen(pattern)-2)
@@ -205,16 +206,28 @@ function s:build_tree(path, ignore_patterns, include_patterns, included)
     let list_last = len(results)-1
     let list_count = 0
     while list_count <= list_last
+      let result = results[list_idx]
+
       " remove ignore results
-      if match(results[list_idx], a:ignore_patterns) != -1
+      if match(result, a:ignore_patterns) != -1
         silent call remove(results, list_idx)
 
         let list_count += 1
         continue
       endif
 
-      " move the file to the end of the list
-      if isdirectory(results[list_idx]) == 0
+      " if this is a file
+      if isdirectory(result) == 0
+        " check if the file is in include_patterns
+        " NOTE: don't check include_patterns for directory
+        if match(result, a:include_patterns) == -1
+          silent call remove(results, list_idx)
+
+          let list_count += 1
+          continue
+        endif
+
+        " move the file to the end of the list
         let file = remove(results, list_idx)
         silent call add(results, file)
 
