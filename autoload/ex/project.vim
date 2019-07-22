@@ -188,31 +188,45 @@ function s:set_level_list( linenr )
   endwhile
 endfunction
 
-" s:sort_filename {{{2
-function s:sort_filename( i1, i2 )
-  return a:i1 ==? a:i2 ? 0 : a:i1 >? a:i2 ? 1 : -1
+" s:on_close {{{2
+function s:on_close()
+  let s:zoom_in = 0
+  let s:help_open = 0
+
+  " go back to edit buffer
+  call ex#window#goto_edit_window()
+endfunction
+
+" s:on_save {{{2
+function s:on_save()
+  if s:help_open
+    let cursor_line = line('.')
+    let cursor_col = col('.')
+    let cursor_line = cursor_line - (len(s:help_text) - len(s:help_short))
+
+    call ex#project#toggle_help()
+
+    silent call cursor(cursor_line,cursor_col)
+    silent normal! zz
+  endif
 endfunction
 
 " s:build_tree {{{2
-function s:build_tree(path, ignore_patterns, include_patterns, included)
+function s:build_tree(path, ignore_patterns, include_patterns)
   " show progress
   " echon ex#short_message( 'processing: ' . fnamemodify(a:path, ':p:.') ) . "\r"
 
   " get dirname
   " let dirname = strpart( a:path, strridx(a:path,'\')+1 )
-  let included = a:included
   let dirname = fnamemodify(a:path, ':t')
   let is_dir = isdirectory(a:path)
-
-  let level_list_len = len(s:level_list)
-  let is_rootfile = (level_list_len == 1 && is_dir == 0) || level_list_len == 0
 
   " if directory
   if is_dir == 1
     " split the first level to results
     let results = split(globpath(a:path, '*'), '\n') " NOTE, globpath('.','.*') will show hidden folder
     let inc_list = []
-    silent call sort(results, function('s:sort_filename'))
+    silent call sort(results)
 
     " sort and filter the list as we want (file|dir )
     let list_idx = 0
@@ -263,27 +277,14 @@ function s:build_tree(path, ignore_patterns, include_patterns, included)
         let s:level_list[len(s:level_list)-1].is_last = 0
       endif
 
-      let child_included = a:included
-
-      " DELME
-      " " if folder filter mode is include and we are not included
-      " if a:folder_pattern != '' && a:folder_filter_include && child_included == 0
-      "   if match( results[list_idx], a:folder_pattern ) != -1
-      "     let child_included = 1
-      "   endif
-      " endif
-
       " if the folder is empty or the folder/file is not added by filter
       if s:build_tree(
             \ results[list_idx],
             \ a:ignore_patterns,
-            \ a:include_patterns,
-            \ child_included
+            \ a:include_patterns
             \ ) == 1
         silent call remove(results, list_idx)
         let list_last = len(results)-1
-      else
-        let included = 1
       endif
 
       let list_idx -= 1
@@ -297,28 +298,18 @@ function s:build_tree(path, ignore_patterns, include_patterns, included)
   endif
 
   " write space
-  let space = ''
-  let list_last = len(s:level_list)-1
-  for level in s:level_list
-    let space = space . ' |'
-  endfor
-  let space = space . '-'
+  let space = repeat(' |', len(s:level_list)) . '-'
 
   " get end_fold
   let end_fold = ''
   let rev_list = reverse(copy(s:level_list))
   for level in rev_list
-    if level.is_last != 0
-      let end_fold = end_fold . ' }'
-    else
+    if level.is_last == 0
       break
     endif
-  endfor
 
-  " DELME
-  " if is_rootfile == 0 && a:folder_pattern != '' && a:folder_filter_include == 1 && included == 0
-  "   return 1
-  " endif
+    let end_fold = end_fold . ' }'
+  endfor
 
   " judge if it is a dir
   if is_dir == 0
@@ -423,27 +414,6 @@ function ex#project#init_buffer()
   if line('$') <= 1
     silent call append ( 0, s:help_text )
     silent exec '$d'
-  endif
-endfunction
-
-function s:on_close()
-  let s:zoom_in = 0
-  let s:help_open = 0
-
-  " go back to edit buffer
-  call ex#window#goto_edit_window()
-endfunction
-
-function s:on_save()
-  if s:help_open
-    let cursor_line = line('.')
-    let cursor_col = col('.')
-    let cursor_line = cursor_line - (len(s:help_text) - len(s:help_short))
-
-    call ex#project#toggle_help()
-
-    silent call cursor(cursor_line,cursor_col)
-    silent normal! zz
   endif
 endfunction
 
@@ -604,8 +574,7 @@ function ex#project#build_tree()
   call s:build_tree(
         \ cwd,
         \ s:ignore_patterns,
-        \ s:include_patterns,
-        \ 0,
+        \ s:include_patterns
         \ )
 
   silent keepjumps normal! gg
@@ -619,7 +588,7 @@ function ex#project#build_tree()
 endfunction
 
 " ex#project#find_current_edit {{{2
-function ex#project#find_current_edit( focus )
+function ex#project#find_current_edit(focus)
   " first jump to edit window
   call ex#window#goto_edit_window()
 
@@ -758,8 +727,7 @@ function ex#project#refresh_current_folder()
   call s:build_tree(
         \ full_path_name,
         \ s:ignore_patterns,
-        \ s:include_patterns,
-        \ 1
+        \ s:include_patterns
         \ )
 
   " at the end, we need to rename the folder as simple one rename the folder
