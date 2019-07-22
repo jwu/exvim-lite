@@ -78,17 +78,22 @@ function! s:find_exvim_folder()
     return
   endif
 
+  " NOTE: cwd will changed when ex#conf#load invoked
+  let target = fnamemodify(argv(0), ':p')
+
   " make sure we have '/' suffix for dir
   let path .= '/'
   call ex#conf#load(path)
 
   " if we have file to edit
-  let target = fnamemodify(argv(0), ':p')
   if findfile(target) ==# ''
     call ex#conf#show()
-    silent exec 'EXProject'
-  else
-    silent exec 'EXProject'
+  endif
+
+  silent exec 'EXProject'
+
+  if findfile(target) !=# '' || finddir(target) !=# ''
+    silent exec 'EXProjectFind ' . target
   endif
 endfunction
 
