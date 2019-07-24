@@ -1,0 +1,1 @@
+silent! set formatoptions-=o
