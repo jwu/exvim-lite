@@ -59,7 +59,7 @@ function ex#conf#new_config(file)
         \ '    "**/*.fxh",',
         \ '    "**/*.cg",',
         \ '    "**/*.shd",',
-        \ '    "**/*.vim",',
+        \ '    "**/*.vim"',
         \ '  ],',
         \ '  "ignores": [',
         \ '    "**/.DS_Store",',
