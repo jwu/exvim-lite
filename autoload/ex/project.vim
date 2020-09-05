@@ -764,7 +764,7 @@ endfunction
 
 " ex#project#get_filters {{{2
 function ex#project#show_filters()
-  echon 'ignores: ' .  s:ignore_patterns . '\n' . 'includes: ' .  s:include_patterns . '\n'
+  echon "ignores: " .  s:ignore_patterns . "\n\n" . "includes: " .  s:include_patterns
 endfunction
 
 " ex#project#newfile {{{2
