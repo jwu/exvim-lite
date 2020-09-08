@@ -762,6 +762,11 @@ function ex#project#set_filters(ignores, includes)
   let s:include_patterns = s:mk_pattern(a:includes)
 endfunction
 
+" ex#project#get_filters {{{2
+function ex#project#show_filters()
+  echon "ignores: " .  s:ignore_patterns . "\n\n" . "includes: " .  s:include_patterns
+endfunction
+
 " ex#project#newfile {{{2
 function ex#project#newfile()
   " check if the line is valid file line
