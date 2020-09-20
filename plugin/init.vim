@@ -1,4 +1,4 @@
-let g:exvim_ver = '1.0.8'
+let g:exvim_ver = '1.0.9'
 let g:exvim_dir = ''
 let g:exvim_cwd = ''
 
