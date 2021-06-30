@@ -109,13 +109,23 @@ function ex#conf#load(dir)
   let ignores = ''
   let includes = ''
 
-  for ig in conf.ignores
-    let ignores .= '-g !'.ig.' '
-  endfor
+  if WINDOWS()
+    for ig in conf.ignores
+      let ignores .= '-g !'.ig.' '
+    endfor
 
-  for ic in conf.includes
-    let includes .= '-g '.ic.' '
-  endfor
+    for ic in conf.includes
+      let includes .= '-g '.ic.' '
+    endfor
+  else
+    for ig in conf.ignores
+      let ignores .= "-g !'".ig."' "
+    endfor
+
+    for ic in conf.includes
+      let includes .= "-g '".ic."' "
+    endfor
+  endif
 
   " NOTE: includes should be first, then ignores will filter out include results
   let rg_globs = includes . ' ' . ignores
