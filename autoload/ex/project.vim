@@ -74,6 +74,9 @@ function s:mk_pattern(list)
     " replace ~foobar to \~foobar
     let item = escape(item, '.~$')
 
+    " replace /foo/ to ^foo/
+    let item = substitute(item, '^\/', '^', 'g')
+
     " replace foo/**/* to foo/.*
     let item = substitute(item, '\*\*\/\*', '.*', 'g')
 
@@ -226,7 +229,8 @@ function s:build_tree(path, ignore_patterns, include_patterns)
     let list_last = len(results)-1
     let list_count = 0
     while list_count <= list_last
-      let result = results[list_idx]
+      " remove cwd so the result can match pattern such as '^foo/bar'
+      let result = fnamemodify(results[list_idx], ':p:.')
 
       " remove ignore results
       if match(result, a:ignore_patterns) != -1
