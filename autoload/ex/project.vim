@@ -87,7 +87,7 @@ function s:mk_pattern(list)
     let item = substitute(item, '\([^.]\)\*', '\1[^/]*', 'g')
 
     " replace *\.foo to [^/]*\.foo$
-    let item = substitute(item, '^\*\\\.\(\S\+\)$', '[^/]*\.\1$', 'g')
+    let item = substitute(item, '^\*\\\.\(\S\+\)$', '[^/]*\\\.\1$', 'g')
 
     " append \|
     let pattern = pattern . item . '\|'
