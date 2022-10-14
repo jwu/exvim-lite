@@ -66,6 +66,10 @@ function ex#window#open( bufname, size, pos, nested, focus, callback )
   if a:focus == 0
     call ex#window#goto_edit_window()
   endif
+
+  if exists('g:lightline')
+    call lightline#update()
+  endif
 endfunction
 
 " ex#window#close {{{
