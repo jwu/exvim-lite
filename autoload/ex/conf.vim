@@ -135,11 +135,12 @@ function ex#conf#load(dir)
   " set exvim global variables
   let g:exvim_dir = fnamemodify(a:dir, ':p')
   let g:exvim_cwd = fnamemodify(a:dir, ':p:h:h')
+  let g:exvim_proj_name = fnamemodify(g:exvim_cwd, ':t')
 
   " set parent working directory
   silent exec 'cd ' . fnameescape(g:exvim_cwd)
   let s:old_titlestring = &titlestring
-  let &titlestring = "%{g:exvim_cwd}:\ %t\ (%{expand(\"%:p:.:h\")}" . ex#os_sep() . ")"
+  let &titlestring = "[%{g:exvim_proj_name}] %{g:exvim_cwd}\ > \%{expand(\"%:p:.:h\")}\ > \%t"
 
   " DISABLE: set viewdir
   " NOTE: When the last path part of 'viewdir' does not exist, this directory is created
