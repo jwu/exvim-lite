@@ -168,12 +168,12 @@ function ex#conf#load(dir)
   let g:ex_search_globs = rg_globs
 
   " set ctrlp
-  if g:loaded_ctrlp
+  if exists('g:loaded_ctrlp') && g:loaded_ctrlp
     let g:ctrlp_user_command = 'rg %s --no-ignore --hidden --files ' . rg_globs
   endif
 
   " set ignores for nerdtree
-  if g:loaded_nerd_tree
+  if exists('g:loaded_nerd_tree') && g:loaded_nerd_tree
     let g:NERDTreeIgnore = []
     for ig in conf.ignores
       if ig =~# '^\*\..*'
