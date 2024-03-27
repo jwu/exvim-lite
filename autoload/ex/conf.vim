@@ -2,6 +2,10 @@ let s:old_titlestring = &titlestring
 let s:old_tagrelative = &tagrelative
 let s:old_tags = &tags
 
+function s:is_windows()
+  return (has('win16') || has('win32') || has('win64'))
+endfunction
+
 " ex#conf#reset {{{
 function ex#conf#reset()
     let &titlestring = s:old_titlestring
@@ -111,7 +115,7 @@ function ex#conf#load(dir)
   let ignores = ''
   let includes = ''
 
-  if WINDOWS()
+  if s:is_windows()
     for ig in conf.ignores
       let ignores .= '-g !'.ig.' '
     endfor
