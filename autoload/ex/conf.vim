@@ -150,6 +150,9 @@ function ex#conf#load(dir)
   " NOTE: When the last path part of 'viewdir' does not exist, this directory is created
   " let &viewdir = g:exvim_dir.'view'
 
+  " setup vim visual
+  let &signcolumn = 'yes' " always show signcolumn
+
   " set tapstop
   let space = conf.space
   let &tabstop = space
@@ -184,6 +187,11 @@ function ex#conf#load(dir)
         call add(g:NERDTreeIgnore, '\'.strpart(ig,1))
       endif
     endfor
+  endif
+
+  " set bufferline
+  if luaeval('_G.___bufferline_private') != {}
+    silent call v:lua.show_bufferline()
   endif
 endfunction
 

@@ -49,32 +49,32 @@ endfunction
 
 " ex#hl_clear_target {{{
 function ex#hl_clear_target()
-  2match none
+  match none
 endfunction
 
 " ex#hl_target_line {{{
 function ex#hl_target_line(linenr)
   " clear previous highlight result
-  2match none
+  match none
 
   " highlight the line pattern
   let pat = '/\%' . a:linenr . 'l.*/'
-  silent exe '2match EX_TARGET_LINE ' . pat
+  silent exe 'match EX_TARGET_LINE ' . pat
 endfunction
 
 " ex#hl_clear_confirm {{{
 function ex#hl_clear_confirm()
-  3match none
+  2match none
 endfunction
 
 " ex#hl_confirm_line {{{
 function ex#hl_confirm_line(linenr)
   " clear previous highlight result
-  3match none
+  2match none
 
   " highlight the line pattern
   let pat = '/\%' . a:linenr . 'l.*/'
-  silent exe '3match EX_CONFIRM_LINE ' . pat
+  silent exe '2match EX_CONFIRM_LINE ' . pat
 endfunction
 
 " ex#os_sep {{{
