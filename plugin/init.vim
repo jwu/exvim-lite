@@ -155,9 +155,7 @@ call ex#plugin#register('qf', {'buftype': 'quickfix'})
 call ex#plugin#register('exsearch', {})
 call ex#plugin#register('exproject', {})
 call ex#plugin#register('nerdtree', {'bufname': 'NERD_tree_\d\+', 'buftype': 'nofile'})
-" call ex#plugin#register('minibufexpl', {'bufname': '-MiniBufExplorer-', 'buftype': 'nofile'})
-" call ex#plugin#register('taglist', {'bufname': '__Tag_List__', 'buftype': 'nofile'})
-" call ex#plugin#register('tagbar', {'bufname': '__TagBar__', 'buftype': 'nofile'})
+call ex#plugin#register('NvimTree', {})
 " }}}
 
 " highlight {{{
