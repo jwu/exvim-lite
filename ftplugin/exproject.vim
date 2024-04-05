@@ -8,6 +8,7 @@ silent! setlocal cursorline
 silent! setlocal nonumber
 silent! setlocal nowrap
 silent! setlocal statusline=
+silent! setlocal signcolumn=no
 
 silent! setlocal foldenable
 silent! setlocal foldmethod=marker foldmarker={,}

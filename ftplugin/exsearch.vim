@@ -8,6 +8,7 @@ silent! setlocal cursorline
 silent! setlocal number
 silent! setlocal nowrap
 silent! setlocal statusline=
+silent! setlocal signcolumn=no
 " }}}1
 
 " key mappings {{{1

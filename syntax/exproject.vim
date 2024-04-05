@@ -10,7 +10,7 @@ syntax match ex_pj_help_key '^" \S\+:'hs=s+2,he=e-1 contained contains=ex_pj_hel
 syntax match ex_pj_help_comma ':' contained
 
 syntax match ex_pj_fold '{\|}'
-syntax match ex_pj_tree_line '\( |\)\+-\{0,1}.*' contains=ex_pj_folder_name,ex_pj_file_name
+syntax match ex_pj_tree_line '\(|\)\+\s\?-\?.*' contains=ex_pj_folder_name,ex_pj_file_name
 
 syntax match ex_pj_folder_label '\C\[F\]'
 syntax match ex_pj_folder_name '\C\[F\].*'hs=s+3 contains=ex_pj_folder_label,ex_pj_fold
@@ -39,7 +39,6 @@ syntax cluster ex_pj_special_files contains=
       \,ex_pj_ft_error
       \,ex_pj_ft_special
 
-
 hi default link ex_pj_help Comment
 hi default link ex_pj_help_key Label
 hi default link ex_pj_help_comma Special
@@ -52,7 +51,8 @@ hi default link ex_pj_tree_line SpecialKey
 hi default link ex_pj_folder_label Error
 hi default link ex_pj_folder_name Directory
 
-hi default link ex_pj_file_name Normal
+" hi default link ex_pj_file_name Normal
+hi ex_pj_file_name ctermbg=NONE guibg=NONE
 
 hi default link ex_pj_ft_clang_src Normal
 hi default link ex_pj_ft_clang_header Normal

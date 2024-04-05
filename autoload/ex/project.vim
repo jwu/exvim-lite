@@ -114,8 +114,8 @@ endfunction
 " s:getname {{{2
 function s:getname(linenr)
   let line = getline(a:linenr)
-  " let line = substitute(line,'.\{-}\[.\{-}\]\(.\{-}\)','\1','')
   let line = substitute(line,'.\{-}-\(\[F\]\)\{0,1}\(.\{-}\)','\2','')
+
   let idx_end_1 = stridx(line,' {')
   let idx_end_2 = stridx(line,' }')
   if idx_end_1 != -1
@@ -132,18 +132,29 @@ function s:getpath(linenr)
   let foldlevel = s:getfoldlevel(a:linenr)
   let fullpath = ''
 
+  " if this is root
+  if foldlevel == 0
+    let cwd = getcwd()
+    if exists('g:exvim_cwd')
+      let cwd = g:exvim_cwd
+    endif
+    return cwd
+  endif
+
   " recursively make full path
-  if match(getline(a:linenr), '[^^]-\C\[F\]') != -1
+  if match(getline(a:linenr), '\C\[F\]') != -1
     let fullpath = s:getname(a:linenr)
   endif
 
-  let level_pattern = repeat('.',foldlevel-1)
+  let level_pattern = 0
   let searchpos = a:linenr
+
   while foldlevel > 1 " don't parse level:0
     let foldlevel -= 1
     let level_pattern = repeat('.',foldlevel*2)
-    let fold_pattern = '^'.level_pattern.'-\C\[F\]'
-    let searchpos = s:search_for_pattern(searchpos , fold_pattern)
+    let fold_pattern = '^ '.level_pattern.'\C\[F\]'
+    let searchpos = s:search_for_pattern(searchpos, fold_pattern)
+
     if searchpos
       let fullpath = s:getname(searchpos).'/'.fullpath
     else
@@ -296,6 +307,7 @@ function s:build_tree(path, ignore_patterns, include_patterns)
 
   " write space
   let space = repeat(' |', len(s:level_list)) . '-'
+  let space = ' ' . space[1:]
 
   " get end_fold
   let end_fold = ''
@@ -486,8 +498,8 @@ endfunction
 function ex#project#confirm_select(modifier)
   " check if the line is valid file line
   let curline = getline('.')
-  if match(curline, '-\(\C\[.*\]\)\{0,1}') == -1
-    call ex#warning('Please select a folder/file')
+  if match(curline, '|-') == -1 && match(curline, '^ \C\[F\]') == -1
+    call ex#warning('Please select a file or folder')
     return
   endif
 
@@ -655,9 +667,9 @@ function ex#project#refresh_current_folder()
   let s:level_list = [] " init level list
 
   " if the line is neither a file/folder line nor a root folder line, return
-  let file_line = getline('.')
-  if match(file_line, '\( |\)\+-\{0,1}.*') == -1 && match(file_line, '-\C\[F\]') == -1
-    call ex#warning( "Please select a file/folder for refresh" )
+  let curline = getline('.')
+  if match(curline, '|-') == -1 && match(curline, '^ \C\[F\]') == -1
+    call ex#warning('Please select a file or folder')
     return
   endif
 
@@ -670,11 +682,11 @@ function ex#project#refresh_current_folder()
   let fold_level = s:getfoldlevel(line('.'))
   let fold_level -= 1
   let level_pattern = repeat('.',fold_level*2)
+  let fold_pattern = '^ '.level_pattern.'\C\[F\]'
   let full_path_name = ''
-  let fold_pattern = '^'.level_pattern.'-\C\[F\]'
 
   " get first fold name
-  if match(file_line, '\C\[F\]') == -1
+  if match(curline, '\C\[F\]') == -1
     if search(fold_pattern,'b')
       let full_path_name = s:getname(line('.'))
     else
@@ -704,7 +716,8 @@ function ex#project#refresh_current_folder()
     while fold_level > 1
       let fold_level -= 1
       let level_pattern = repeat('.',fold_level*2)
-      let fold_pattern = '^'.level_pattern.'-\C\[F\]'
+      let fold_pattern = '^ '.level_pattern.'\C\[F\]'
+
       if search(fold_pattern,'b')
         let full_path_name = s:getname(line('.')).'/'.full_path_name
       else
