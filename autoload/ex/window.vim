@@ -246,3 +246,16 @@ function ex#window#switch_window()
     call ex#window#goto_plugin_window()
   endif
 endfunction
+
+" ex#window#close_last_edit_plugin_window {{{
+function ex#window#close_last_edit_plugin_window()
+  let winnr = bufwinnr(s:last_editplugin_bufnr)
+  let filetype = getwinvar(winnr, '&filetype', '')
+
+  " do not close project window
+  if filetype == 'exproject' || filetype == 'nerdtree' || filetype == 'NvimTree'
+    return
+  endif
+
+  call ex#window#close(winnr)
+endfunction

@@ -128,6 +128,7 @@ command! EXbd call ex#buffer#keep_window_bd()
 
 command! EXsw call ex#window#switch_window()
 command! EXgp call ex#window#goto_plugin_window()
+command! EXgc call ex#window#close_last_edit_plugin_window()
 
 command! EXplugins call ex#echo_registered_plugins()
 
@@ -146,6 +147,7 @@ augroup EXVIM
   au VimEnter * nested call <SID>find_exvim_folder()
   au VimEnter,WinLeave * call ex#window#record()
   au BufLeave * call ex#buffer#record()
+  au WinClosed * call ex#window#goto_edit_window()
 augroup END
 " }}}
 
